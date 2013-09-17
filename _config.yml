@@ -74,4 +74,4 @@ disqus_show_comment_count: false
 google_analytics_tracking_id: UA-44017750-1
 
 # Facebook Like
-facebook_like: true
+facebook_like: false # Disabled because of brokenness.
