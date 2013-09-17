@@ -34,9 +34,13 @@ layout: default
 {% unless page.sidebar == false %}
 <aside class="sidebar">
   {% if site.page_asides.size %}
+<!-- begin sidebars -->
     {% include_array page_asides %}
+<!-- end sidebars -->
   {% else %}
+<!-- begin sidebars -->
     {% include_array default_asides %}
+<!-- end sidebars -->
   {% endif %}
 </aside>
 {% endunless %}

@@ -22,8 +22,12 @@ layout: default
 </div>
 <aside class="sidebar">
   {% if site.blog_index_asides.size %}
+<!-- begin sidebars -->
     {% include_array blog_index_asides %}
+<!-- end sidebars -->
   {% else %}
+<!-- begin sidebars -->
     {% include_array default_asides %}
+<!-- end sidebars -->
   {% endif %}
 </aside>
