@@ -11,7 +11,7 @@ ssh_port       = "22"
 document_root  = "~/website.com/"
 rsync_delete   = false
 rsync_args     = ""  # Any extra arguments to pass to rsync
-deploy_default = "rsync"
+deploy_default = "s3cmd"
 
 # This will be configured for you when you run config_deploy
 deploy_branch  = "gh-pages"
@@ -27,6 +27,12 @@ posts_dir       = "_posts"    # directory for blog files
 themes_dir      = ".themes"   # directory for blog files
 new_post_ext    = "markdown"  # default new post file extension when using the new_post task
 new_page_ext    = "markdown"  # default new page file extension when using the new_page task
+
+## -- Deployment Config -- ##
+configuration = {
+  :destination => public_dir,
+  :s3_path => 's3://aristocrats.io/'
+}
 
 
 desc "Initial setup for Octopress: copies the default theme into the path of Jekyll's generator. Rake install defaults to rake install[classic] to install a different theme run rake install[some_theme_name]"
@@ -370,8 +376,52 @@ def ask(message, valid_options)
   answer
 end
 
-desc "list tasks"
-task :list do
-  puts "Tasks: #{(Rake::Task.tasks - [Rake::Task[:list]]).join(', ')}"
-  puts "(type rake -T for more detail)\n\n"
+## -- S3 Deployment Code -- ##
+def ensure_trailing_slash(val)
+  val = "#{val}/" unless(val.end_with?('/'))
+  return val
+end
+
+S3CMD_NO_S3CMD_ERROR=[
+  "ERROR: You must install s3cmd first.  On OS X this can be done via MacPorts",
+  "or Homebrew.  On other OSs, consult the relevant package manager."
+].join("\n").red
+S3CMD_DESTINATION_ERROR=[
+  "ERROR: You must specify the 'destination' configuration setting.  This",
+  "specifies where the 'generate' task will compile your site to.  A",
+  "value of 'public' is typical."
+].join("\n").red
+S3CMD_S3PATH_ERROR=[
+  "ERROR: You must specify the 's3_path' configuration setting.  This",
+  "specifies the bucket where your site will be synced to.  The format",
+  "is 's3://<bucket_name>/'."
+].join("\n").red
+desc "Deploy website via s3cmd"
+task :s3cmd do
+  unless `which s3cmd`.strip.end_with?('/s3cmd')
+    puts S3CMD_NO_S3CMD_ERROR
+    exit 1
+  end
+  if configuration[:destination].nil? || configuration[:destination] == ''
+    puts S3CMD_DESTINATION_ERROR
+    exit 1
+  end
+  if configuration[:s3_path].nil? || configuration[:s3_path] == ''
+    puts S3CMD_S3PATH_ERROR
+    exit 1
+  end
+  exclude = ""
+  if File.exists?('./s3cmd-exclude')
+    exclude = "--exclude-from='#{File.expand_path('./s3cmd-exclude')}'"
+  end
+  puts "## Deploying website via s3cmd"
+  destination = ensure_trailing_slash(configuration[:destination])
+  s3path = ensure_trailing_slash(configuration[:s3_path])
+  puts "Uploading new/changed files..."
+  ok_failed system(["s3cmd", "--acl-public", exclude, "--progress", "sync",
+    destination, s3path].join(" "))
+  puts "Removing defunct files..."
+  ok_failed system(["s3cmd", "--acl-public", "--skip-existing",
+    "--delete-removed", exclude, "--progress", "sync", destination,
+    s3path].join(" "))
 end
