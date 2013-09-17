@@ -1,0 +1,9 @@
+---
+layout: post
+title: "Hello, World!"
+date: 2013-09-16 17:42
+comments: true
+categories:
+---
+Welcome to [Aristocrats.io](//Aristocrats.io)!  A blog of fantasy, horror,
+terror and delight!
