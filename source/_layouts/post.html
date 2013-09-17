@@ -13,7 +13,9 @@ single: true
       {% include post/categories.html %}
     </p>
     {% unless page.sharing == false %}
+      <!-- begin sharing -->
       {% include post/sharing.html %}
+      <!-- end sharing -->
     {% endunless %}
     <p class="meta">
       {% if page.previous.url %}
